@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `#__pricelistbase`;DROP TABLE IF EXISTS `#__pricelistcity`;
