@@ -44,7 +44,7 @@
 
 	<administration>
 		<!-- Administration Menu Section -->
-		<menu>Загрузчик прайс листа</menu>
+		<menu>COM_PRICEUPLOADER</menu>
 		<!-- Administration Main File Copy Section -->
 		<!-- Note the folder attribute: This attribute describes the folder
 			to copy FROM in the package to install therefore files copied
@@ -54,6 +54,7 @@
 			<filename>index.html</filename>
 			<filename>priceuploader.php</filename>
 			<filename>controller.php</filename>
+			<folder>language</folder>
 			<!-- SQL files section -->
 			<folder>sql</folder>
 			<!-- Models -->
