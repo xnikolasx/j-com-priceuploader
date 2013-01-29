@@ -35,7 +35,7 @@ class PriceUploaderController extends JController {
 
             // Обработка прайса с базовыми ценами
             if (($fpath = $this->_check_file('base_file')) !== false)
-                if (($fdata = $this->_parse_file($fpath)) !== false) {
+                if (($fdata = $this->_parse_file($fpath)) !== false)
                     if ($this->_clear_table("#__pricelistbase")) {
                         // Создание запроса
                         $query = $this->_db->getQuery(true)
@@ -56,17 +56,39 @@ class PriceUploaderController extends JController {
                         }
 
                         //  Выполнение запроса
-                        if (!$this->_db->setQuery($query)->query()) {
+                        if (!$this->_db->setQuery($query)->query())
                             // Дамп запроса, если он не был выполнен
                             echo $query->dump();
-                        }
                     }
-                }
 
             // Прайс с ценами по городу
-            if (($fpath = $this->_check_file('city_file')) !== false) {
-                // do something
-            }
+            if (($fpath = $this->_check_file('city_file')) !== false)
+                if (($fdata = $this->_parse_file($fpath)) !== false)
+                    if($this->_clear_table("#__pricelistcity")) {
+                        // Создание запроса
+                        $query = $this->_db->getQuery(true)
+                                        ->insert("#__pricelistcity")->columns('
+                            `id`, `city`, `price1`, `price2`, `price3`
+                        ');
+
+                        // Добавление данных к запросу
+                        foreach ($fdata as $data_row) {
+                            $query->values("
+                                {$data_row[0]},
+                                '{$data_row[1]}',
+                                {$data_row[2]},
+                                {$data_row[3]},
+                                {$data_row[4]}
+                            ");
+                        }
+                        
+                        echo $query->dump();
+                        
+                        //  Выполнение запроса
+                        if (!$this->_db->setQuery($query)->query())
+                            // Дамп запроса, если он не был выполнен
+                            echo $query->dump();
+                    }
         }
 
         // set default view if not set
@@ -95,18 +117,15 @@ class PriceUploaderController extends JController {
      * @var string file_name ключ массива FILES
      * @return  string полный путь к файлу
      */
-    function _check_file($file_name) {
-        if (!empty($_FILES[$file_name]['tmp_name']))
-            if ($_FILES[$file_name]['type'] == 'application/vnd.ms-excel') {
-                // Перемещение файла
+    function _check_file($file_key) {
+        if (!empty($_FILES[$file_key]['tmp_name']))
+            if ($_FILES[$file_key]['type'] == 'application/vnd.ms-excel') {
+                // Перемещение файла и возврат значения
                 $file_name = time();
                 $full_path = PHP_EXCEL_UPLOADS . $file_name . '.xls';
-                move_uploaded_file($_FILES['base_file']['tmp_name'], $full_path);
 
-                unset($file_name);
-
-                // Возвращение значения
-                return $full_path;
+                if (move_uploaded_file($_FILES[$file_key]['tmp_name'], $full_path))
+                    return $full_path;
             }
         return false;
     }
