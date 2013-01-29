@@ -82,14 +82,14 @@ class PriceUploaderController extends JController {
                             ");
                         }
                         
-                        echo $query->dump();
-                        
                         //  Выполнение запроса
                         if (!$this->_db->setQuery($query)->query())
                             // Дамп запроса, если он не был выполнен
                             echo $query->dump();
                     }
         }
+        
+        $this->_clean_uploads();
 
         // set default view if not set
         $input = JFactory::getApplication()->input;
@@ -117,7 +117,7 @@ class PriceUploaderController extends JController {
      * @var string file_name ключ массива FILES
      * @return  string полный путь к файлу
      */
-    function _check_file($file_key) {
+    private function _check_file($file_key) {
         if (!empty($_FILES[$file_key]['tmp_name']))
             if ($_FILES[$file_key]['type'] == 'application/vnd.ms-excel') {
                 // Перемещение файла и возврат значения
@@ -135,7 +135,7 @@ class PriceUploaderController extends JController {
      * @var string full_file_path ключ массива FILES
      * @return array
      */
-    function _parse_file($full_file_path) {
+    private function _parse_file($full_file_path) {
         if (file_exists($full_file_path)) {
             // Получение экземпляра ридера и загрузка файла
             $xls_reader = new PHPExcel_Reader_Excel5();
@@ -156,6 +156,15 @@ class PriceUploaderController extends JController {
         }
         return false;
     }
+    
+    private function _clean_uploads() {
+        if(($dh = opendir(PHP_EXCEL_UPLOADS)) !== false) {
+            while(false !== ($file = readdir($dh))) {
+                if($file != '.' && $file != '..')
+                    unlink(PHP_EXCEL_UPLOADS . $file);
+            }
+        }
+    }
 
     /**
      * Удаляет все записи из выбранной таблицы
@@ -163,7 +172,7 @@ class PriceUploaderController extends JController {
      *  или #__pricelistcity
      * @return boolean
      */
-    function _clear_table($table_name) {
+    private function _clear_table($table_name) {
         if (!empty($table_name)) {
             // Создание запроса
             $query = $this->_db->getQuery(true)
@@ -178,5 +187,5 @@ class PriceUploaderController extends JController {
         }
         return false;
     }
-
+    
 }
