@@ -68,17 +68,18 @@ class PriceUploaderController extends JController {
                         // Создание запроса
                         $query = $this->_db->getQuery(true)
                                         ->insert("#__pricelistcity")->columns('
-                            `id`, `city`, `price1`, `price2`, `price3`
+                            `id`, `id_base`, `city`, `price1`, `price2`, `price3`
                         ');
 
                         // Добавление данных к запросу
                         foreach ($fdata as $data_row) {
                             $query->values("
                                 {$data_row[0]},
-                                '{$data_row[1]}',
-                                {$data_row[2]},
+                                {$data_row[1]},
+                                '{$data_row[2]}',
                                 {$data_row[3]},
-                                {$data_row[4]}
+                                {$data_row[4]},
+                                {$data_row[5]}
                             ");
                         }
                         
