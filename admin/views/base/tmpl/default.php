@@ -10,18 +10,20 @@ JHtml::_('behavior.tooltip');
       enctype="multipart/form-data">
     <fieldset>
         <legend>
-            Загрузите файлы с ценами. 
-            Загружать можно как по отдельности, так и вместе.
+            Выберите файл прайс-листа на Вашем компьютере
+            и нажмите кнопку "Загрузить"
         </legend>
-        <label for="base_file">
+        <label for="price_file">
             Файл с базовыми ценами (xls):
         </label>
-        <input type="file" name="base_file" id="base_file" /><br />
+        <input type="file" name="price_file" id="price_file" /><br />
         
+        <!--
         <label for="city_file">
             Файл с ценами по городам (xls):
         </label>
         <input type="file" name="city_file" id="city_file" /><br />
+        -->
     </fieldset>
     <input type="submit" value="Загрузить" />
         <div>

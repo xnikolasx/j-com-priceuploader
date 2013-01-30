@@ -24,8 +24,7 @@ class PriceUploaderController extends JController {
      */
     function display($cachable = false, $urlparams = false) {
         // Отправлялись ли файлы?
-        if (!empty($_FILES['base_file']['tmp_name']) ||
-                !empty($_FILES['city_file']['tmp_name'])) {
+        if (!empty($_FILES['price_file']['tmp_name'])) {
 
             // Подгрузка расширения для работы с xls
             require_once(PHP_EXCEL);
@@ -33,6 +32,15 @@ class PriceUploaderController extends JController {
             // Получение объекта базы данных
             $this->_db = JFactory::getDbo();
 
+            if (($fpath = $this->_check_file('price_file')) !== false)
+                if (($fdata = $this->_parse_file($fpath)) !== false)
+                    if ($this->_clear_table("#__pricelistbase") &&
+                            $this->_clear_table("#__pricelistcity")) {
+                        $this->_add_data("#__pricelistbase", '`id`, `title`, `oper`, `price1`, `price2`, `price3`', $fdata['base']);
+                        $this->_add_data("#__pricelistcity", '`id`, `title`, `city`, `price1`, `price2`, `price3`', $fdata['city']);
+                    }
+
+            /*
             // Обработка прайса с базовыми ценами
             if (($fpath = $this->_check_file('base_file')) !== false)
                 if (($fdata = $this->_parse_file($fpath)) !== false)
@@ -57,14 +65,14 @@ class PriceUploaderController extends JController {
 
                         //  Выполнение запроса
                         if (!$this->_db->setQuery($query)->query())
-                            // Дамп запроса, если он не был выполнен
+                        // Дамп запроса, если он не был выполнен
                             echo $query->dump();
                     }
 
             // Прайс с ценами по городу
             if (($fpath = $this->_check_file('city_file')) !== false)
                 if (($fdata = $this->_parse_file($fpath)) !== false)
-                    if($this->_clear_table("#__pricelistcity")) {
+                    if ($this->_clear_table("#__pricelistcity")) {
                         // Создание запроса
                         $query = $this->_db->getQuery(true)
                                         ->insert("#__pricelistcity")->columns('
@@ -82,14 +90,15 @@ class PriceUploaderController extends JController {
                                 {$data_row[5]}
                             ");
                         }
-                        
+
                         //  Выполнение запроса
                         if (!$this->_db->setQuery($query)->query())
-                            // Дамп запроса, если он не был выполнен
+                        // Дамп запроса, если он не был выполнен
                             echo $query->dump();
                     }
+             */
         }
-        
+
         $this->_clean_uploads();
 
         // set default view if not set
@@ -142,12 +151,11 @@ class PriceUploaderController extends JController {
             $xls_reader = new PHPExcel_Reader_Excel5();
             $xls_file = $xls_reader->load($full_file_path);
 
-            // Делаем первый лист активным
-            $xls_file->setActiveSheetIndex();
-
-            // Конвертируем лист в массив и убираем первую строку
-            $result = $xls_file->getActiveSheet()->toArray();
-            array_shift($result);
+            // Конвертируем первые два листа в массивы
+            $result = array(
+                'base' => $this->_parse_list($xls_file),
+                'city' => $this->_parse_list($xls_file, 1)
+            );
 
             unset($xls_reader);
             unset($xls_file);
@@ -157,11 +165,14 @@ class PriceUploaderController extends JController {
         }
         return false;
     }
-    
+
+    /**
+     * Очищает папку для загрузок прайс-листов
+     */
     private function _clean_uploads() {
-        if(($dh = opendir(PHP_EXCEL_UPLOADS)) !== false) {
-            while(false !== ($file = readdir($dh))) {
-                if($file != '.' && $file != '..')
+        if (($dh = opendir(PHP_EXCEL_UPLOADS)) !== false) {
+            while (false !== ($file = readdir($dh))) {
+                if ($file != '.' && $file != '..' && $file != 'index.html')
                     unlink(PHP_EXCEL_UPLOADS . $file);
             }
         }
@@ -188,5 +199,43 @@ class PriceUploaderController extends JController {
         }
         return false;
     }
-    
+
+    /**
+     * Конвертирует лист xls файла с заданным индексом в массив
+     * @param type $xls_file - файл xls экземпляр PHPExcel
+     * @param type $list_index - индекс требуемого листа
+     * @return type
+     */
+    private function _parse_list(&$xls_file, $list_index = 0) {
+        $result = $xls_file->setActiveSheetIndex($list_index)->toArray();
+        array_shift($result);
+        return $result;
+    }
+
+    /**
+     * Добавление массива данных в БД
+     * @param string $columns - строка, указывающая заполняемые параметры
+     * @param array $data - массив данных
+     */
+    private function _add_data($table, $columns, $data) {
+        // Составление скелета запроса
+        $query = $this->_db->getQuery($table)->insert($table)->columns($columns);
+
+        // Добавление данных
+        foreach ($data as $row) {
+            $query->values("
+                    {$row[0]},
+                    '{$row[1]}',
+                    '{$row[2]}',
+                    {$row[3]},
+                    {$row[4]},
+                    {$row[5]}
+                ");
+        }
+
+        // Выполнение запроса
+        if (!$this->_db->setQuery($query)->query())
+            echo $query->dump();
+    }
+
 }

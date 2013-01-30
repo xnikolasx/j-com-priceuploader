@@ -10,7 +10,7 @@
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	
 	<!--  The version string is recorded in the components table -->
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	
 	<!-- The description is optional and defaults to the name -->
 	<description>Компонента для загрузки прайс-листов в формате xls.</description>
